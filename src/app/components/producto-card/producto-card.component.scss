@@ -1,0 +1,136 @@
+.prod-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.prod-img-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  height: 200px;
+  background: var(--color-light-bg);
+}
+
+.prod-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+
+  .prod-card:hover & {
+    transform: scale(1.05);
+  }
+}
+
+.prod-badge-dest {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--color-accent);
+  color: var(--color-dark);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 50px;
+}
+
+.prod-agotado-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+
+.prod-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.prod-nombre {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-dark);
+  margin-bottom: 6px;
+}
+
+.prod-desc {
+  color: var(--color-gray);
+  font-size: 0.83rem;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  flex: 1;
+}
+
+.prod-incluye {
+  margin-bottom: 12px;
+}
+
+.incluye-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.incluye-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.incluye-tag {
+  background: var(--color-light-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-gray);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 50px;
+}
+
+.prod-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+}
+
+.btn-agregar {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  i { font-size: 0.9rem; }
+
+  &:hover:not(:disabled) {
+    background: var(--color-primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(192, 57, 43, 0.35);
+  }
+
+  &:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+}
+

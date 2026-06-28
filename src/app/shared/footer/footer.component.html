@@ -1,0 +1,87 @@
+<footer class="footer">
+  <div class="footer-wave">
+    <svg viewBox="0 0 1440 60" preserveAspectRatio="none">
+      <path d="M0,30 C360,60 1080,0 1440,30 L1440,60 L0,60 Z" fill="#1A1A1A"/>
+    </svg>
+  </div>
+
+  <div class="footer-body">
+    <div class="container">
+      <div class="row gy-4">
+
+        <div class="col-12 col-md-4">
+          <div class="footer-brand">
+            <span class="footer-emoji">🍗</span>
+            <div>
+              <h5 class="footer-title">Pollería El Chino</h5>
+              <p class="footer-tagline">El sabor que te hace volver</p>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Más de 20 años llevando el mejor pollo a la brasa de Arequipa a tu mesa.
+            Ingredientes frescos, sazón única.
+          </p>
+          <div class="social-links">
+            <a [href]="configuracion.facebook" target="_blank" class="social-btn" title="Facebook">
+              <i class="bi bi-facebook"></i>
+            </a>
+            <a [href]="configuracion.instagram" target="_blank" class="social-btn" title="Instagram">
+              <i class="bi bi-instagram"></i>
+            </a>
+            <a href="https://wa.me/{{configuracion.whatsapp}}" target="_blank" class="social-btn whatsapp-btn" title="WhatsApp">
+              <i class="bi bi-whatsapp"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-2">
+          <h6 class="footer-section-title">Menú</h6>
+          <ul class="footer-links">
+            <li><a routerLink="/">Inicio</a></li>
+            <li><a routerLink="/carta">Carta</a></li>
+            <li><a routerLink="/promociones">Promociones</a></li>
+            <li><a routerLink="/contacto">Contacto</a></li>
+          </ul>
+        </div>
+
+        <div class="col-6 col-md-2">
+          <h6 class="footer-section-title">Carta</h6>
+          <ul class="footer-links">
+            <li><a routerLink="/carta">🍗 Pollos</a></li>
+            <li><a routerLink="/carta">🍱 Combos</a></li>
+            <li><a routerLink="/carta">🥤 Bebidas</a></li>
+          </ul>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <h6 class="footer-section-title">Encuéntranos</h6>
+          <ul class="footer-info">
+            <li>
+              <i class="bi bi-geo-alt-fill"></i>
+              <span>{{ configuracion.direccion }}</span>
+            </li>
+            <li>
+              <i class="bi bi-clock-fill"></i>
+              <span>{{ configuracion.horario }}</span>
+            </li>
+            <li>
+              <i class="bi bi-telephone-fill"></i>
+              <span>{{ configuracion.telefono }}</span>
+            </li>
+            <li>
+              <i class="bi bi-envelope-fill"></i>
+              <span>{{ configuracion.correo }}</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <hr class="footer-divider">
+      <div class="footer-bottom">
+        <p class="mb-0">© {{ anio }} Pollería El Chino. Todos los derechos reservados.</p>
+        <p class="mb-0 footer-credit">Hecho con ❤️ en Arequipa</p>
+      </div>
+    </div>
+  </div>
+</footer>

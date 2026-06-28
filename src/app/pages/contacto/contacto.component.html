@@ -1,0 +1,171 @@
+<div class="page-header page-header-contacto">
+  <div class="container">
+    <h1 class="page-header-title">Encuén<span>tranos</span></h1>
+    <p class="page-header-sub">Estamos aquí para atenderte</p>
+  </div>
+</div>
+
+<section class="contacto-section">
+  <div class="container">
+    <div class="row g-5">
+
+      <div class="col-12 col-lg-5">
+        <h2 class="contacto-title">¿Cómo podemos <span>ayudarte?</span></h2>
+        <p class="contacto-intro">
+          Escríbenos, llámanos o visítanos. Siempre hay alguien listo para atenderte.
+        </p>
+
+        <div class="info-list">
+          <div class="info-item-contact">
+            <div class="info-ico-wrap">
+              <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div>
+              <span class="info-item-label">Dirección</span>
+              <p class="info-item-val">{{ config.direccion }}</p>
+            </div>
+          </div>
+
+          <div class="info-item-contact">
+            <div class="info-ico-wrap">
+              <i class="bi bi-clock-fill"></i>
+            </div>
+            <div>
+              <span class="info-item-label">Horario</span>
+              <p class="info-item-val">{{ config.horario }}</p>
+            </div>
+          </div>
+
+          <div class="info-item-contact">
+            <div class="info-ico-wrap">
+              <i class="bi bi-telephone-fill"></i>
+            </div>
+            <div>
+              <span class="info-item-label">Teléfono</span>
+              <p class="info-item-val">{{ config.telefono }}</p>
+            </div>
+          </div>
+
+          <div class="info-item-contact">
+            <div class="info-ico-wrap">
+              <i class="bi bi-envelope-fill"></i>
+            </div>
+            <div>
+              <span class="info-item-label">Correo</span>
+              <p class="info-item-val">{{ config.correo }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-btns">
+          <a [href]="config.googleMapsUrl" target="_blank" class="btn-primary-custom">
+            <i class="bi bi-map me-2"></i>Cómo llegar
+          </a>
+          <a [href]="getWhatsappUrl()" target="_blank" class="btn-wa-contact">
+            <i class="bi bi-whatsapp me-2"></i>WhatsApp
+          </a>
+        </div>
+
+        <div class="redes-contacto">
+          <a [href]="config.facebook" target="_blank" class="red-social-btn">
+            <i class="bi bi-facebook"></i>
+          </a>
+          <a [href]="config.instagram" target="_blank" class="red-social-btn instagram">
+            <i class="bi bi-instagram"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-7">
+        <div class="form-contacto-card">
+          <h4 class="form-contacto-title">Envíanos un mensaje</h4>
+
+          @if (enviadoOk) {
+            <div class="alert-success-custom">
+              <i class="bi bi-check-circle-fill"></i>
+              <div>
+                <strong>¡Mensaje enviado!</strong>
+                <p>Te responderemos a la brevedad posible.</p>
+              </div>
+            </div>
+          }
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label-custom">Nombre completo *</label>
+              <input type="text" class="input-custom"
+                [class.input-error]="f['nombre'].invalid && f['nombre'].touched"
+                placeholder="Tu nombre"
+                [formControl]="$any(f['nombre'])">
+              @if (f['nombre'].invalid && f['nombre'].touched) {
+                <span class="input-msg-error">Nombre requerido (mín. 3 caracteres)</span>
+              }
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label-custom">Correo electrónico *</label>
+              <input type="email" class="input-custom"
+                [class.input-error]="f['correo'].invalid && f['correo'].touched"
+                placeholder="tu@correo.com"
+                [formControl]="$any(f['correo'])">
+              @if (f['correo'].invalid && f['correo'].touched) {
+                <span class="input-msg-error">Correo válido requerido</span>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-custom">Asunto *</label>
+              <input type="text" class="input-custom"
+                [class.input-error]="f['asunto'].invalid && f['asunto'].touched"
+                placeholder="¿En qué podemos ayudarte?"
+                [formControl]="$any(f['asunto'])">
+              @if (f['asunto'].invalid && f['asunto'].touched) {
+                <span class="input-msg-error">Asunto requerido</span>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="form-label-custom">Mensaje *</label>
+              <textarea class="input-custom textarea-custom"
+                [class.input-error]="f['mensaje'].invalid && f['mensaje'].touched"
+                placeholder="Escribe tu mensaje aquí..."
+                rows="5"
+                [formControl]="$any(f['mensaje'])"></textarea>
+              @if (f['mensaje'].invalid && f['mensaje'].touched) {
+                <span class="input-msg-error">Mensaje requerido (mín. 10 caracteres)</span>
+              }
+            </div>
+
+            <div class="col-12">
+              <button class="btn-primary-custom w-100 btn-enviar" (click)="enviar()" [disabled]="enviando">
+                @if (enviando) {
+                  <span class="spinner-border spinner-border-sm me-2"></span> Enviando...
+                } @else {
+                  <i class="bi bi-send me-2"></i> Enviar mensaje
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mapa-section">
+      <h3 class="mapa-title">Encuéntranos en el mapa</h3>
+      <div class="mapa-wrap">
+        @if (config.googleMapsEmbed) {
+          <iframe
+            [src]="config.googleMapsEmbed | safe"
+            width="100%"
+            height="400"
+            style="border:0;"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        }
+      </div>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,157 @@
+.footer {
+  margin-top: 60px;
+}
+
+.footer-wave {
+  display: block;
+  line-height: 0;
+
+  svg {
+    width: 100%;
+    height: 60px;
+    display: block;
+  }
+}
+
+.footer-body {
+  background: #1A1A1A;
+  padding: 50px 0 30px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.footer-emoji {
+  font-size: 2.4rem;
+}
+
+.footer-title {
+  font-family: var(--font-display);
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.footer-tagline {
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.footer-desc {
+  color: #9E9E9E;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.footer-section-title {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  a {
+    color: #9E9E9E;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+}
+
+.footer-info {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: #9E9E9E;
+    font-size: 0.88rem;
+    margin-bottom: 12px;
+
+    i {
+      color: var(--color-primary);
+      font-size: 0.95rem;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+.social-links {
+  display: flex;
+  gap: 10px;
+}
+
+.social-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: var(--color-primary);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  &.whatsapp-btn:hover {
+    background: #25D366;
+  }
+}
+
+.footer-divider {
+  border-color: rgba(255,255,255,0.1);
+  margin: 30px 0 20px;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  p {
+    color: #666;
+    font-size: 0.82rem;
+  }
+}
+
+.footer-credit {
+  color: #666;
+}
