@@ -1,0 +1,89 @@
+<div class="admin-wrapper" [class.sidebar-collapsed]="!sidebarAbierto">
+
+  <!-- Overlay móvil -->
+  @if (menuMovilAbierto) {
+    <div class="admin-overlay-movil" (click)="cerrarMenuMovil()"></div>
+  }
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" [class.movil-abierto]="menuMovilAbierto">
+
+    <!-- Logo -->
+    <div class="sidebar-brand">
+      <span class="sidebar-emoji">🍗</span>
+      @if (sidebarAbierto) {
+        <div class="sidebar-brand-text">
+          <span class="sidebar-brand-name">El Chino</span>
+          <span class="sidebar-brand-sub">Admin Panel</span>
+        </div>
+      }
+    </div>
+
+    <!-- Navegación -->
+    <nav class="sidebar-nav">
+      @for (item of navItems; track item.ruta) {
+        <a
+          [routerLink]="item.ruta"
+          routerLinkActive="nav-active"
+          class="sidebar-nav-item"
+          (click)="cerrarMenuMovil()"
+          [title]="!sidebarAbierto ? item.label : ''">
+          <i class="bi" [class]="item.icon"></i>
+          @if (sidebarAbierto) {
+            <span>{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Ir al sitio -->
+    <div class="sidebar-footer">
+      <a routerLink="/" target="_blank" class="sidebar-site-link" [title]="!sidebarAbierto ? 'Ver sitio' : ''">
+        <i class="bi bi-box-arrow-up-right"></i>
+        @if (sidebarAbierto) {
+          <span>Ver sitio público</span>
+        }
+      </a>
+    </div>
+
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="admin-main">
+
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <!-- Toggle escritorio -->
+        <button class="topbar-toggle d-none d-lg-flex" (click)="toggleSidebar()">
+          <i class="bi bi-layout-sidebar"></i>
+        </button>
+        <!-- Toggle móvil -->
+        <button class="topbar-toggle d-flex d-lg-none" (click)="toggleMenuMovil()">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+
+      <div class="topbar-right">
+        <div class="topbar-admin">
+          <div class="admin-avatar">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div class="admin-info d-none d-md-block">
+            <span class="admin-role">Administrador</span>
+            <span class="admin-mail">{{ adminEmail }}</span>
+          </div>
+        </div>
+        <button class="topbar-logout" (click)="logout()" title="Cerrar sesión">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Router outlet del admin -->
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>
