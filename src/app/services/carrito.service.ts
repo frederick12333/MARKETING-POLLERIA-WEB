@@ -14,34 +14,21 @@ export class CarritoService {
 
   constructor(private configService: ConfiguracionService) {}
 
-  // ---------- Observables ----------
-
-  getItems() {
-    return this.items$.asObservable();
-  }
-
-  getVisible() {
-    return this.visible$.asObservable();
-  }
-
-  // ---------- Visibilidad ----------
+  getItems()   { return this.items$.asObservable(); }
+  getVisible() { return this.visible$.asObservable(); }
 
   abrir()  { this.visible$.next(true); }
   cerrar() { this.visible$.next(false); }
   toggle() { this.visible$.next(!this.visible$.value); }
 
-  // ---------- Operaciones ----------
-
   agregar(producto: Producto) {
     const items = [...this.items$.value];
     const idx   = items.findIndex(i => i.producto.id === producto.id);
-
     if (idx !== -1) {
       items[idx] = { ...items[idx], cantidad: items[idx].cantidad + 1 };
     } else {
       items.push({ producto, cantidad: 1 });
     }
-
     this.emitir(items);
     this.abrir();
   }
@@ -68,8 +55,6 @@ export class CarritoService {
     this.emitir([]);
   }
 
-  // ---------- Totales ----------
-
   getTotal(): number {
     return this.items$.value.reduce((acc, i) => acc + i.producto.precio * i.cantidad, 0);
   }
@@ -78,18 +63,13 @@ export class CarritoService {
     return this.items$.value.reduce((acc, i) => acc + i.cantidad, 0);
   }
 
-  // ---------- WhatsApp ----------
-
   generarMensajeWhatsApp(): string {
     const items = this.items$.value;
     if (!items.length) return '';
-
     const lineas = items.map(i =>
       `${i.cantidad} x ${i.producto.nombre} - S/.${(i.producto.precio * i.cantidad).toFixed(2)}`
     ).join('\n');
-
     const total = this.getTotal().toFixed(2);
-
     return `Hola Pollería El Chino 🍗\n\nDeseo realizar el siguiente pedido:\n\n${lineas}\n\n*TOTAL: S/.${total}*\n\nMuchas gracias.`;
   }
 
@@ -99,25 +79,19 @@ export class CarritoService {
     window.open(url, '_blank');
   }
 
-  // ---------- Storage ----------
-
   private emitir(items: ItemCarrito[]) {
     this.items$.next(items);
     this.guardarEnStorage(items);
   }
 
   private guardarEnStorage(items: ItemCarrito[]) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    } catch {}
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
   }
 
   private cargarDesdeStorage(): ItemCarrito[] {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       return data ? JSON.parse(data) : [];
-    } catch {
-      return [];
-    }
+    } catch { return []; }
   }
 }

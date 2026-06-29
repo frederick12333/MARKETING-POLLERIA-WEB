@@ -13,15 +13,15 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
 
-  form: FormGroup;
+  form:       FormGroup;
   cargando    = false;
   errorMsg    = '';
   verPassword = false;
 
   constructor(
-    private fb:      FormBuilder,
-    private auth:    AuthService,
-    private router:  Router
+    private fb:     FormBuilder,
+    private auth:   AuthService,
+    private router: Router
   ) {
     if (this.auth.estaAutenticado()) {
       this.router.navigate(['/admin/dashboard']);
@@ -29,8 +29,7 @@ export class LoginComponent {
 
     this.form = this.fb.group({
       email:    ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      recordar: [false]
+      password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
@@ -43,7 +42,10 @@ export class LoginComponent {
     this.cargando = true;
     this.errorMsg = '';
 
-    const ok = await this.auth.login(this.form.value);
+    const ok = await this.auth.login({
+      email:    this.form.value.email,
+      password: this.form.value.password
+    });
 
     this.cargando = false;
 

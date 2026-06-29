@@ -1,42 +1,83 @@
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { Cliente } from '../interfaces/cliente.interface';
+import { from, Observable, map } from 'rxjs';
+import { SupabaseService } from './supabase.service';
+import { Cliente, ClienteDb } from '../interfaces/cliente.interface';
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService {
 
-  private clientes: Cliente[] = [
-    { id: 'cli-1', nombre: 'María García',   correo: 'maria@gmail.com',   celular: '987654321', fechaRegistro: '2024-03-10' },
-    { id: 'cli-2', nombre: 'Juan Pérez',     correo: 'juan@hotmail.com',  celular: '976543210', fechaRegistro: '2024-03-12' },
-    { id: 'cli-3', nombre: 'Ana Torres',     correo: 'ana@gmail.com',     celular: '965432109', fechaRegistro: '2024-03-15' },
-    { id: 'cli-4', nombre: 'Carlos Quispe',  correo: 'carlos@yahoo.com',  celular: '954321098', fechaRegistro: '2024-03-18' },
-    { id: 'cli-5', nombre: 'Lucía Mamani',   correo: 'lucia@gmail.com',   celular: '943210987', fechaRegistro: '2024-03-20' },
-  ];
+  constructor(private supa: SupabaseService) {}
+
+  private mapear(db: ClienteDb): Cliente {
+    return {
+      id:            db.id,
+      nombre:        db.nombre,
+      correo:        db.correo,
+      celular:       db.celular,
+      fechaRegistro: db.fecha_registro
+    };
+  }
 
   getAll(): Observable<Cliente[]> {
-    return of([...this.clientes]);
+    return from(
+      this.supa.client
+        .from('clientes')
+        .select('*')
+        .order('fecha_registro', { ascending: false })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return (data as ClienteDb[]).map(c => this.mapear(c));
+      })
+    );
   }
 
   getUltimos(cantidad: number = 5): Observable<Cliente[]> {
-    return of([...this.clientes].reverse().slice(0, cantidad));
+    return from(
+      this.supa.client
+        .from('clientes')
+        .select('*')
+        .order('fecha_registro', { ascending: false })
+        .limit(cantidad)
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return (data as ClienteDb[]).map(c => this.mapear(c));
+      })
+    );
   }
 
-  registrar(cliente: Omit<Cliente, 'id' | 'fechaRegistro'>): Observable<Cliente> {
-    const nuevo: Cliente = {
-      ...cliente,
-      id: 'cli-' + Date.now(),
-      fechaRegistro: new Date().toISOString().split('T')[0]
-    };
-    this.clientes.push(nuevo);
-    return of(nuevo);
+  registrar(cliente: { nombre: string; correo: string; celular: string }): Observable<Cliente> {
+    return from(
+      this.supa.client
+        .from('clientes')
+        .insert({
+          nombre:  cliente.nombre,
+          correo:  cliente.correo,
+          celular: cliente.celular
+        })
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return this.mapear(data as ClienteDb);
+      })
+    );
   }
 
   buscar(termino: string): Observable<Cliente[]> {
-    const t = termino.toLowerCase();
-    return of(this.clientes.filter(c =>
-      c.nombre.toLowerCase().includes(t) ||
-      c.correo.toLowerCase().includes(t) ||
-      c.celular.includes(t)
-    ));
+    return from(
+      this.supa.client
+        .from('clientes')
+        .select('*')
+        .or(`nombre.ilike.%${termino}%,correo.ilike.%${termino}%,celular.ilike.%${termino}%`)
+        .order('fecha_registro', { ascending: false })
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return (data as ClienteDb[]).map(c => this.mapear(c));
+      })
+    );
   }
 }

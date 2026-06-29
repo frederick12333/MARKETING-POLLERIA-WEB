@@ -19,43 +19,35 @@ import { ProductoCardComponent } from '../../components/producto-card/producto-c
 })
 export class InicioComponent implements OnInit {
 
-  destacados: Producto[]    = [];
-  promociones: Promocion[]  = [];
-  config!: Configuracion;
+  destacados:  Producto[]    = [];
+  promociones: Promocion[]   = [];
+  config:      Configuracion = {
+    nombreNegocio: '', direccion: '', telefono: '', whatsapp: '',
+    correo: '', horario: '', facebook: '', instagram: '',
+    googleMapsUrl: '', googleMapsEmbed: '', logo: ''
+  };
 
   carouselItems = [
-    {
-      titulo:    'El Mejor Pollo a la Brasa',
-      subtitulo: 'Receta secreta de más de 20 años',
-      badge:     '🔥 El favorito de Arequipa',
-      bg:        'slide-1'
-    },
-    {
-      titulo:    'Combos para Toda la Familia',
-      subtitulo: 'Precios especiales de lunes a viernes',
-      badge:     '🍱 Ahorra más con nuestros combos',
-      bg:        'slide-2'
-    },
-    {
-      titulo:    'Delivery a Tu Puerta',
-      subtitulo: 'Pide por WhatsApp en minutos',
-      badge:     '🛵 Rápido y caliente',
-      bg:        'slide-3'
-    }
+    { titulo: 'El Mejor Pollo a la Brasa',    subtitulo: 'Receta secreta de más de 20 años',        badge: '🔥 El favorito de Arequipa',     bg: 'slide-1' },
+    { titulo: 'Combos para Toda la Familia',  subtitulo: 'Precios especiales de lunes a viernes',    badge: '🍱 Ahorra más con nuestros combos', bg: 'slide-2' },
+    { titulo: 'Delivery a Tu Puerta',          subtitulo: 'Pide por WhatsApp en minutos',             badge: '🛵 Rápido y caliente',              bg: 'slide-3' }
   ];
 
-  infoRapida = [
-    { icono: 'bi-clock',         texto: 'Lun - Dom: 11am - 11pm',    label: 'Horario' },
-    { icono: 'bi-telephone',     texto: '054-123456',                  label: 'Teléfono' },
-    { icono: 'bi-geo-alt',       texto: 'Av. Los Próceres 456, AQP', label: 'Dirección' },
-    { icono: 'bi-whatsapp',      texto: '+51 999 999 999',             label: 'WhatsApp' },
-  ];
+  // La info rápida ahora se construye desde config
+  get infoRapida() {
+    return [
+      { icono: 'bi-clock',     texto: this.config.horario   || '—', label: 'Horario'   },
+      { icono: 'bi-telephone', texto: this.config.telefono  || '—', label: 'Teléfono'  },
+      { icono: 'bi-geo-alt',   texto: this.config.direccion || '—', label: 'Dirección' },
+      { icono: 'bi-whatsapp',  texto: this.config.whatsapp  ? '+' + this.config.whatsapp : '—', label: 'WhatsApp' }
+    ];
+  }
 
   constructor(
-    private productosService: ProductosService,
+    private productosService:   ProductosService,
     private promocionesService: PromocionesService,
-    private configService: ConfiguracionService,
-    private carritoService: CarritoService
+    private configService:      ConfiguracionService,
+    private carritoService:     CarritoService
   ) {}
 
   ngOnInit() {

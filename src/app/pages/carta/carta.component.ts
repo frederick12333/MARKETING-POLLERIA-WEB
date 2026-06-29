@@ -17,24 +17,25 @@ import { ProductoCardComponent } from '../../components/producto-card/producto-c
 })
 export class CartaComponent implements OnInit {
 
-  todos: Producto[]       = [];
-  filtrados: Producto[]   = [];
-  categorias: Categoria[] = [];
-  categoriaActiva         = 'todas';
-  busqueda                = '';
+  todos:     Producto[]  = [];
+  filtrados: Producto[]  = [];
+  categorias:Categoria[] = [];
+  categoriaActiva = 'todas';
+  busqueda        = '';
+  cargando        = true;
 
   constructor(
-    private productosService: ProductosService,
+    private productosService:  ProductosService,
     private categoriasService: CategoriasService,
-    private carritoService: CarritoService
+    private carritoService:    CarritoService
   ) {}
 
   ngOnInit() {
-    this.productosService.getAll().subscribe(p => {
-      this.todos    = p.filter(prod => prod.disponible);
-      this.filtrados = [...this.todos];
+    this.productosService.getDisponibles().subscribe(p => {
+      this.todos    = p;
+      this.filtrados = p;
+      this.cargando  = false;
     });
-
     this.categoriasService.getAll().subscribe(c => this.categorias = c);
   }
 
@@ -50,21 +51,18 @@ export class CartaComponent implements OnInit {
   }
 
   private aplicarFiltros() {
-    let resultado = [...this.todos];
-
+    let r = [...this.todos];
     if (this.categoriaActiva !== 'todas') {
-      resultado = resultado.filter(p => p.categoriaId === this.categoriaActiva);
+      r = r.filter(p => p.categoriaId === this.categoriaActiva);
     }
-
     if (this.busqueda.trim()) {
-      const termino = this.busqueda.toLowerCase();
-      resultado = resultado.filter(p =>
-        p.nombre.toLowerCase().includes(termino) ||
-        p.descripcion.toLowerCase().includes(termino)
+      const t = this.busqueda.toLowerCase();
+      r = r.filter(p =>
+        p.nombre.toLowerCase().includes(t) ||
+        p.descripcion.toLowerCase().includes(t)
       );
     }
-
-    this.filtrados = resultado;
+    this.filtrados = r;
   }
 
   limpiarBusqueda() {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Promocion } from '../../../interfaces/promocion.interface';
 import { PromocionesService } from '../../../services/promociones.service';
+import { SupabaseService } from '../../../services/supabase.service';
 
 @Component({
   selector: 'app-promociones-form',
@@ -19,15 +20,18 @@ export class PromocionesFormComponent implements OnInit {
 
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  form!:         FormGroup;
-  guardando      = false;
-  esEdicion      = false;
-  imagenPreview  = '';
-  dragOver       = false;
+  form!:        FormGroup;
+  guardando     = false;
+  errorMsg      = '';
+  esEdicion     = false;
+  imagenPreview = '';
+  imagenFile:   File | null = null;
+  dragOver      = false;
 
   constructor(
-    private fb:  FormBuilder,
-    private svc: PromocionesService
+    private fb:   FormBuilder,
+    private svc:  PromocionesService,
+    private supa: SupabaseService
   ) {}
 
   ngOnInit() {
@@ -37,7 +41,6 @@ export class PromocionesFormComponent implements OnInit {
     this.form = this.fb.group({
       titulo:      [this.promocion?.titulo      ?? '', [Validators.required, Validators.minLength(5)]],
       descripcion: [this.promocion?.descripcion ?? '', Validators.required],
-      imagen:      [this.promocion?.imagen      ?? ''],
       fechaInicio: [this.promocion?.fechaInicio ?? ''],
       fechaFin:    [this.promocion?.fechaFin    ?? ''],
       activa:      [this.promocion?.activa      ?? true]
@@ -46,8 +49,8 @@ export class PromocionesFormComponent implements OnInit {
 
   get f() { return this.form.controls; }
 
-  onDragOver(e: DragEvent) { e.preventDefault(); this.dragOver = true; }
-  onDragLeave() { this.dragOver = false; }
+  onDragOver(e: DragEvent)  { e.preventDefault(); this.dragOver = true; }
+  onDragLeave()              { this.dragOver = false; }
 
   onDrop(e: DragEvent) {
     e.preventDefault();
@@ -63,48 +66,57 @@ export class PromocionesFormComponent implements OnInit {
 
   procesarArchivo(file: File) {
     if (!file.type.startsWith('image/')) return;
+    this.imagenFile = file;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      this.imagenPreview = ev.target?.result as string;
-      this.form.patchValue({ imagen: this.imagenPreview });
-    };
+    reader.onload = ev => { this.imagenPreview = ev.target?.result as string; };
     reader.readAsDataURL(file);
   }
 
-  abrirSelector() {
-    this.fileInput.nativeElement.click();
-  }
+  abrirSelector() { this.fileInput.nativeElement.click(); }
 
-  guardar() {
+  async guardar() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     this.guardando = true;
+    this.errorMsg  = '';
 
-    const data: Promocion = {
-      id:          this.promocion?.id ?? 'promo-' + Date.now(),
-      titulo:      this.form.value.titulo,
-      descripcion: this.form.value.descripcion,
-      imagen:      this.form.value.imagen || 'assets/images/placeholder-promo.jpg',
-      fechaInicio: this.form.value.fechaInicio || undefined,
-      fechaFin:    this.form.value.fechaFin    || undefined,
-      activa:      this.form.value.activa
-    };
+    try {
+      let imagenUrl = this.promocion?.imagen ?? '';
 
-    setTimeout(() => {
-      if (this.esEdicion) {
-        this.svc.update(data);
-      } else {
-        this.svc.add(data);
+      if (this.imagenFile) {
+        const ext    = this.imagenFile.name.split('.').pop();
+        const nombre = `promo_${Date.now()}.${ext}`;
+        imagenUrl    = await this.supa.subirImagen('promociones', nombre, this.imagenFile);
       }
+
+      const data: Omit<Promocion, 'id'> = {
+        titulo:      this.form.value.titulo,
+        descripcion: this.form.value.descripcion,
+        imagen:      imagenUrl,
+        fechaInicio: this.form.value.fechaInicio || undefined,
+        fechaFin:    this.form.value.fechaFin    || undefined,
+        activa:      this.form.value.activa
+      };
+
+      if (this.esEdicion && this.promocion) {
+        this.svc.update({ ...data, id: this.promocion.id }).subscribe({
+          next: () => { this.guardando = false; this.guardado.emit(); },
+          error: e => { this.guardando = false; this.errorMsg = e.message; }
+        });
+      } else {
+        this.svc.add(data).subscribe({
+          next: () => { this.guardando = false; this.guardado.emit(); },
+          error: e => { this.guardando = false; this.errorMsg = e.message; }
+        });
+      }
+    } catch (e: any) {
       this.guardando = false;
-      this.guardado.emit();
-    }, 500);
+      this.errorMsg  = 'Error al subir imagen: ' + e.message;
+    }
   }
 
-  cancelar() {
-    this.cancelado.emit();
-  }
+  cancelar() { this.cancelado.emit(); }
 }

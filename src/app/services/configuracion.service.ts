@@ -1,27 +1,61 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { Configuracion } from '../interfaces/configuracion.interface';
+import { BehaviorSubject, from, Observable, map, tap } from 'rxjs';
+import { SupabaseService } from './supabase.service';
+import { Configuracion, ConfiguracionDb } from '../interfaces/configuracion.interface';
+
+const CONFIG_VACIA: Configuracion = {
+  nombreNegocio:   '',
+  direccion:       '',
+  telefono:        '',
+  whatsapp:        '',
+  correo:          '',
+  horario:         '',
+  facebook:        '',
+  instagram:       '',
+  googleMapsUrl:   '',
+  googleMapsEmbed: '',
+  logo:            ''
+};
 
 @Injectable({ providedIn: 'root' })
 export class ConfiguracionService {
 
-  private config: Configuracion = {
-    nombreNegocio:  'Pollería El Chino',
-    direccion:      'Av. Los Próceres 456, Arequipa',
-    telefono:       '054-123456',
-    whatsapp:       '51999999999',
-    correo:         'contacto@polleriaelchino.pe',
-    facebook:       'https://facebook.com/polleriaelchino',
-    instagram:      'https://instagram.com/polleriaelchino',
-    horario:        'Lun - Dom: 11:00 am - 11:00 pm',
-    googleMapsUrl:  'https://maps.google.com/?q=Arequipa',
-    googleMapsEmbed:'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30377.386647808956!2d-71.56299!3d-16.40904!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91424a5db46e5a91%3A0xb0cffc90c1ab62b1!2sArequipa!5e0!3m2!1ses!2spe!4v1709000000000!5m2!1ses!2spe',
-    logo:           'assets/images/logo.png'
-  };
+  private config$ = new BehaviorSubject<Configuracion>({ ...CONFIG_VACIA });
 
-  private config$ = new BehaviorSubject<Configuracion>(this.config);
+  constructor(private supa: SupabaseService) {
+    this.cargarDesdeSupabase();
+  }
 
-  getConfig() {
+  private mapear(db: ConfiguracionDb): Configuracion {
+    return {
+      id:              db.id,
+      nombreNegocio:   db.nombre_negocio,
+      direccion:       db.direccion,
+      telefono:        db.telefono,
+      whatsapp:        db.whatsapp,
+      correo:          db.correo,
+      horario:         db.horario,
+      facebook:        db.facebook,
+      instagram:       db.instagram,
+      googleMapsUrl:   db.google_maps_url,
+      googleMapsEmbed: db.google_maps_embed,
+      logo:            db.logo
+    };
+  }
+
+  private cargarDesdeSupabase() {
+    this.supa.client
+      .from('configuracion')
+      .select('*')
+      .single()
+      .then(({ data, error }) => {
+        if (!error && data) {
+          this.config$.next(this.mapear(data as ConfiguracionDb));
+        }
+      });
+  }
+
+  getConfig(): Observable<Configuracion> {
     return this.config$.asObservable();
   }
 
@@ -29,13 +63,45 @@ export class ConfiguracionService {
     return this.config$.value;
   }
 
-  updateConfig(nuevaConfig: Configuracion) {
-    this.config$.next(nuevaConfig);
+  update(config: Configuracion): Observable<Configuracion> {
+    const id = config.id;
+
+    return from(
+      this.supa.client
+        .from('configuracion')
+        .update({
+          nombre_negocio:    config.nombreNegocio,
+          direccion:         config.direccion,
+          telefono:          config.telefono,
+          whatsapp:          config.whatsapp,
+          correo:            config.correo,
+          horario:           config.horario,
+          facebook:          config.facebook,
+          instagram:         config.instagram,
+          google_maps_url:   config.googleMapsUrl,
+          google_maps_embed: config.googleMapsEmbed,
+          logo:              config.logo
+        })
+        .eq('id', id!)
+        .select()
+        .single()
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return this.mapear(data as ConfiguracionDb);
+      }),
+      tap(nueva => this.config$.next(nueva))
+    );
   }
 
   getWhatsappUrl(mensaje?: string): string {
-    const numero = this.config$.value.whatsapp;
-    const texto = mensaje ? encodeURIComponent(mensaje) : '';
+    const numero = this.config$.value.whatsapp || '51999999999';
+    const texto  = mensaje ? encodeURIComponent(mensaje) : '';
     return `https://wa.me/${numero}?text=${texto}`;
+  }
+
+  // Alias para compatibilidad con el componente de configuración admin
+  updateConfig(config: Configuracion): Observable<Configuracion> {
+    return this.update(config);
   }
 }

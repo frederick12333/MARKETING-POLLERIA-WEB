@@ -1,13 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { CarritoSidebarComponent } from './shared/carrito-sidebar/carrito-sidebar.component';
+import { ConfiguracionService } from './services/configuracion.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent, FooterComponent, CarritoSidebarComponent],
+  imports: [RouterOutlet, NavbarComponent, FooterComponent, CarritoSidebarComponent, CommonModule],
   template: `
     <app-navbar></app-navbar>
     <app-carrito-sidebar></app-carrito-sidebar>
@@ -15,9 +17,22 @@ import { CarritoSidebarComponent } from './shared/carrito-sidebar/carrito-sideba
       <router-outlet></router-outlet>
     </main>
     <app-footer></app-footer>
-    <a href="https://wa.me/51999999999" target="_blank" class="whatsapp-float" title="Escríbenos por WhatsApp">
+    <a [href]="whatsappUrl" target="_blank" class="whatsapp-float" title="Escríbenos por WhatsApp">
       <i class="bi bi-whatsapp"></i>
     </a>
   `
 })
-export class AppComponent {}
+export class AppComponent implements OnInit {
+
+  whatsappUrl = 'https://wa.me/51999999999';
+
+  constructor(private configService: ConfiguracionService) {}
+
+  ngOnInit() {
+    this.configService.getConfig().subscribe(c => {
+      if (c.whatsapp) {
+        this.whatsappUrl = `https://wa.me/${c.whatsapp}`;
+      }
+    });
+  }
+}

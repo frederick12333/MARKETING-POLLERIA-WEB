@@ -1,57 +1,54 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-
-const SESSION_KEY = 'admin_session_elchino';
-
-// Credenciales temporales — reemplazar con Firebase Auth
-const ADMIN_EMAIL    = 'admin@polleriaelchino.pe';
-const ADMIN_PASSWORD = 'admin123';
-
-export interface LoginCredenciales {
-  email:      string;
-  password:   string;
-  recordar:   boolean;
-}
+import { SupabaseService } from '../../services/supabase.service';
+import { BehaviorSubject } from 'rxjs';
+import { Session } from '@supabase/supabase-js';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-  constructor(private router: Router) {}
+  private session$ = new BehaviorSubject<Session | null>(null);
 
-  login(credenciales: LoginCredenciales): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (
-          credenciales.email    === ADMIN_EMAIL &&
-          credenciales.password === ADMIN_PASSWORD
-        ) {
-          const storage = credenciales.recordar ? localStorage : sessionStorage;
-          storage.setItem(SESSION_KEY, JSON.stringify({ email: credenciales.email }));
-          resolve(true);
-        } else {
-          resolve(false);
-        }
-      }, 800);
+  constructor(
+    private supa:   SupabaseService,
+    private router: Router
+  ) {
+    // Carga la sesión activa al iniciar
+    this.supa.getSession().then(({ data }) => {
+      this.session$.next(data.session);
+    });
+
+    // Escucha cambios de sesión en tiempo real
+    this.supa.onAuthChange((_event, session) => {
+      this.session$.next(session);
     });
   }
 
-  logout() {
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
+  async login(credenciales: { email: string; password: string }): Promise<boolean> {
+    const { data, error } = await this.supa.signIn(
+      credenciales.email,
+      credenciales.password
+    );
+    if (error || !data.session) return false;
+    this.session$.next(data.session);
+    return true;
+  }
+
+  async logout() {
+    await this.supa.signOut();
+    this.session$.next(null);
     this.router.navigate(['/admin/login']);
   }
 
   estaAutenticado(): boolean {
-    return !!(
-      localStorage.getItem(SESSION_KEY) ||
-      sessionStorage.getItem(SESSION_KEY)
-    );
+    return !!this.session$.value;
   }
 
   getEmail(): string {
-    const data =
-      localStorage.getItem(SESSION_KEY) ||
-      sessionStorage.getItem(SESSION_KEY);
-    return data ? JSON.parse(data).email : '';
+    return this.session$.value?.user?.email ?? '';
+  }
+
+  getSession() {
+    return this.session$.asObservable();
   }
 }

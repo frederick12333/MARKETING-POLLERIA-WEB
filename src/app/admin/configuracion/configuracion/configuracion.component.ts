@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ConfiguracionService } from '../../../services/configuracion.service';
 import { Configuracion } from '../../../interfaces/configuracion.interface';
+import { SupabaseService } from '../../../services/supabase.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -18,76 +19,99 @@ export class ConfiguracionComponent implements OnInit {
   form!:       FormGroup;
   guardando    = false;
   guardadoOk   = false;
+  errorMsg     = '';
   logoPreview  = '';
+  logoFile:    File | null = null;
+  configId     = '';
 
   constructor(
-    private fb:  FormBuilder,
-    private svc: ConfiguracionService
+    private fb:   FormBuilder,
+    private svc:  ConfiguracionService,
+    private supa: SupabaseService
   ) {}
 
   ngOnInit() {
-    const c = this.svc.getConfigSnapshot();
-    this.logoPreview = c.logo;
+    this.svc.getConfig().subscribe(c => {
+      if (!this.form) {
+        this.configId    = c.id ?? '';
+        this.logoPreview = c.logo;
 
-    this.form = this.fb.group({
-      nombreNegocio:   [c.nombreNegocio,   Validators.required],
-      direccion:       [c.direccion,       Validators.required],
-      telefono:        [c.telefono,        Validators.required],
-      correo:          [c.correo,          [Validators.required, Validators.email]],
-      whatsapp:        [c.whatsapp,        Validators.required],
-      horario:         [c.horario,         Validators.required],
-      facebook:        [c.facebook],
-      instagram:       [c.instagram],
-      googleMapsUrl:   [c.googleMapsUrl],
-      googleMapsEmbed: [c.googleMapsEmbed],
-      logo:            [c.logo]
+        this.form = this.fb.group({
+          nombreNegocio:   [c.nombreNegocio,   Validators.required],
+          direccion:       [c.direccion,       Validators.required],
+          telefono:        [c.telefono,        Validators.required],
+          correo:          [c.correo,          [Validators.required, Validators.email]],
+          whatsapp:        [c.whatsapp,        Validators.required],
+          horario:         [c.horario,         Validators.required],
+          facebook:        [c.facebook],
+          instagram:       [c.instagram],
+          googleMapsUrl:   [c.googleMapsUrl],
+          googleMapsEmbed: [c.googleMapsEmbed]
+        });
+      }
     });
   }
 
-  get f() { return this.form.controls; }
+  get f() { return this.form?.controls ?? {}; }
 
   onLogoChange(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      this.logoPreview = ev.target?.result as string;
-      this.form.patchValue({ logo: this.logoPreview });
-    };
+    this.logoFile = file;
+    const reader  = new FileReader();
+    reader.onload = ev => { this.logoPreview = ev.target?.result as string; };
     reader.readAsDataURL(file);
   }
 
-  abrirLogoSelector() {
-    this.logoInput.nativeElement.click();
-  }
+  abrirLogoSelector() { this.logoInput.nativeElement.click(); }
 
-  guardar() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+  async guardar() {
+    if (!this.form || this.form.invalid) {
+      this.form?.markAllAsTouched();
       return;
     }
 
     this.guardando = true;
+    this.errorMsg  = '';
 
-    const data: Configuracion = {
-      nombreNegocio:   this.form.value.nombreNegocio,
-      direccion:       this.form.value.direccion,
-      telefono:        this.form.value.telefono,
-      correo:          this.form.value.correo,
-      whatsapp:        this.form.value.whatsapp,
-      horario:         this.form.value.horario,
-      facebook:        this.form.value.facebook  || '',
-      instagram:       this.form.value.instagram || '',
-      googleMapsUrl:   this.form.value.googleMapsUrl   || '',
-      googleMapsEmbed: this.form.value.googleMapsEmbed || '',
-      logo:            this.form.value.logo || ''
-    };
+    try {
+      let logoUrl = this.logoPreview;
 
-    setTimeout(() => {
-      this.svc.updateConfig(data);
-      this.guardando  = false;
-      this.guardadoOk = true;
-      setTimeout(() => this.guardadoOk = false, 3000);
-    }, 700);
+      if (this.logoFile) {
+        const ext   = this.logoFile.name.split('.').pop();
+        const nombre = `logo_${Date.now()}.${ext}`;
+        logoUrl      = await this.supa.subirImagen('configuracion', nombre, this.logoFile);
+      }
+
+      const data: Configuracion = {
+        id:              this.configId,
+        nombreNegocio:   this.form.value.nombreNegocio,
+        direccion:       this.form.value.direccion,
+        telefono:        this.form.value.telefono,
+        correo:          this.form.value.correo,
+        whatsapp:        this.form.value.whatsapp,
+        horario:         this.form.value.horario,
+        facebook:        this.form.value.facebook  || '',
+        instagram:       this.form.value.instagram || '',
+        googleMapsUrl:   this.form.value.googleMapsUrl   || '',
+        googleMapsEmbed: this.form.value.googleMapsEmbed || '',
+        logo:            logoUrl
+      };
+
+      this.svc.updateConfig(data).subscribe({
+        next: () => {
+          this.guardando  = false;
+          this.guardadoOk = true;
+          setTimeout(() => this.guardadoOk = false, 3000);
+        },
+        error: e => {
+          this.guardando = false;
+          this.errorMsg  = 'Error al guardar: ' + e.message;
+        }
+      });
+    } catch (e: any) {
+      this.guardando = false;
+      this.errorMsg  = 'Error al subir logo: ' + e.message;
+    }
   }
 }

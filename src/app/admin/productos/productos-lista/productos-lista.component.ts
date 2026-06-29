@@ -19,14 +19,15 @@ export class ProductosListaComponent implements OnInit {
   productos:  Producto[]  = [];
   categorias: Categoria[] = [];
   filtrados:  Producto[]  = [];
-  busqueda    = '';
+  busqueda        = '';
   filtroCategoria = 'todas';
   filtroEstado    = 'todos';
+  cargando        = false;
+  errorMsg        = '';
 
-  mostrarForm  = false;
-  productoEdit: Producto | null = null;
-
-  mostrarConfirm    = false;
+  mostrarForm      = false;
+  productoEdit:    Producto | null = null;
+  mostrarConfirm   = false;
   productoAEliminar: Producto | null = null;
 
   constructor(
@@ -40,25 +41,28 @@ export class ProductosListaComponent implements OnInit {
   }
 
   cargar() {
-    this.productosService.getAll().subscribe(p => {
-      this.productos = p;
-      this.aplicarFiltros();
+    this.cargando = true;
+    this.errorMsg = '';
+    this.productosService.getAll().subscribe({
+      next: p => {
+        this.productos = p;
+        this.aplicarFiltros();
+        this.cargando = false;
+      },
+      error: e => {
+        this.errorMsg = 'Error al cargar productos: ' + e.message;
+        this.cargando = false;
+      }
     });
   }
 
   aplicarFiltros() {
     let r = [...this.productos];
-
     if (this.filtroCategoria !== 'todas') {
       r = r.filter(p => p.categoriaId === this.filtroCategoria);
     }
-
-    if (this.filtroEstado === 'activos') {
-      r = r.filter(p => p.disponible);
-    } else if (this.filtroEstado === 'inactivos') {
-      r = r.filter(p => !p.disponible);
-    }
-
+    if (this.filtroEstado === 'activos')   r = r.filter(p => p.disponible);
+    if (this.filtroEstado === 'inactivos') r = r.filter(p => !p.disponible);
     if (this.busqueda.trim()) {
       const t = this.busqueda.toLowerCase();
       r = r.filter(p =>
@@ -66,7 +70,6 @@ export class ProductosListaComponent implements OnInit {
         p.descripcion.toLowerCase().includes(t)
       );
     }
-
     this.filtrados = r;
   }
 
@@ -85,8 +88,10 @@ export class ProductosListaComponent implements OnInit {
   }
 
   toggleDisponible(p: Producto) {
-    this.productosService.toggleDisponible(p.id);
-    this.cargar();
+    this.productosService.toggleDisponible(p.id, p.disponible).subscribe({
+      next: () => this.cargar(),
+      error: e => this.errorMsg = 'Error al cambiar estado: ' + e.message
+    });
   }
 
   confirmarEliminar(p: Producto) {
@@ -95,12 +100,15 @@ export class ProductosListaComponent implements OnInit {
   }
 
   eliminar() {
-    if (this.productoAEliminar) {
-      this.productosService.delete(this.productoAEliminar.id);
-      this.mostrarConfirm    = false;
-      this.productoAEliminar = null;
-      this.cargar();
-    }
+    if (!this.productoAEliminar) return;
+    this.productosService.delete(this.productoAEliminar.id).subscribe({
+      next: () => {
+        this.mostrarConfirm    = false;
+        this.productoAEliminar = null;
+        this.cargar();
+      },
+      error: e => this.errorMsg = 'Error al eliminar: ' + e.message
+    });
   }
 
   cancelarEliminar() {
@@ -108,12 +116,6 @@ export class ProductosListaComponent implements OnInit {
     this.productoAEliminar = null;
   }
 
-  onFormGuardado() {
-    this.mostrarForm = false;
-    this.cargar();
-  }
-
-  onFormCancelado() {
-    this.mostrarForm = false;
-  }
+  onFormGuardado()  { this.mostrarForm = false; this.cargar(); }
+  onFormCancelado() { this.mostrarForm = false; }
 }
